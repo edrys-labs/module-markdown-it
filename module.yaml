@@ -1,6 +1,6 @@
 name: Markdown-IT
 
-description: Write Markdown as task-descriptions for your students, this markdown interpreter additionally allows to integrate formulas, ASCII-art and videos. For more information, see <br><a href='https://github.com/Cross-Lab-Project/edrys_module-markdown-it' target='_blank'>https://github.com/Cross-Lab-Project/edrys_module-markdown-it</a>
+description: Write Markdown as task-descriptions for your students, this markdown interpreter additionally allows to integrate formulas, ASCII-art and videos. For more information, see <br><a href='https://github.com/edrys-labs/module-markdown-it' target='_blank'>https://github.com/edrys-labs/module-markdown-it</a>
 
 show-in:
   - '*'
@@ -28,9 +28,14 @@ style: |-
     margin: 0px;
     padding: 1rem;
     min-width: calc(100% - 2rem);
+    visibility: hidden; /* Hide until content is processed */
+  }
+  
+  body.loaded {
+    visibility: visible;
   }
 
-body: ""
+body: ""  
 
 main: |-
   function init() {
@@ -79,14 +84,17 @@ main: |-
 
   function render(content) {
       if (window.md) {
-          document.body.innerHTML = md.render(content)
+          const renderedHTML = md.render(content)
+          document.body.innerHTML = renderedHTML
+          
+          document.body.classList.add('loaded')
 
           setTimeout(() => {
               console.warn("loading mermaid")
               mermaid.initialize({
                   startOnLoad: true
               })
-          }, 1000)
+          }, 100)
       } else {
         setTimeout(() => {
           render(content)
@@ -101,9 +109,9 @@ main: |-
 
       init()
 
-      let content = Edrys.module.config || ""
+      let content = Edrys.module.config.content || ""
       
-      content += "\n\n" + ( Edrys.module[Edrys.role.toLowerCase()+'Config'] || "" )
+      content += "\n\n" + ( (Edrys.module[Edrys.role.toLowerCase()+'Config'] || {}).content || "" )
 
       render(content)
   });
