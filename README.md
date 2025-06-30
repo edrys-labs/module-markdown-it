@@ -47,9 +47,9 @@ https://edrys-labs.github.io/module-markdown-it/index.html
 
 If your edrys supports Yaml-configs, you can also load:
 
-`https://raw.githubusercontent.com/edrys-labs/module-markdown-it/2.0.0/module.yaml`
+`https://raw.githubusercontent.com/edrys-labs/module-markdown-it/refs/heads/main/module.yaml`
 
-`https://raw.githubusercontent.com/edrys-labs/module-markdown-it/2.0.0/index.html`
+`https://raw.githubusercontent.com/edrys-labs/module-markdown-it/refs/heads/main/index.html`
 
 ## Configuration
 
