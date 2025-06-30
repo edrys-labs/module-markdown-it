@@ -7,7 +7,7 @@ show-in:
 
 load:
   scripts:
-    - dist/index.js   
+    - https://cdn.jsdelivr.net/gh/edrys-labs/module-markdown-it@main/dist/index.js 
     - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js
     - https://cdn.jsdelivr.net/npm/markdown-it-texmath/texmath.min.js
     - https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js
