@@ -155,9 +155,11 @@
 
         init()
 
-        let content = Edrys.module.config.content || ''
+        const general = (Edrys.module.config || {}).content || ''
+        const roleSpecific =
+          (Edrys.module[Edrys.role.toLowerCase() + 'Config'] || {}).content || ''
 
-        content += '\n\n' + (Edrys.module[Edrys.role.toLowerCase() + 'Config'] || '').content
+        const content = [general, roleSpecific].filter(Boolean).join('\n\n')
 
         render(content)
       })
