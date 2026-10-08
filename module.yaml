@@ -7,10 +7,9 @@ show-in:
 
 load:
   scripts:
-    - https://cdn.jsdelivr.net/gh/edrys-labs/module-markdown-it@main/dist/index.js 
     - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js
-    - https://cdn.jsdelivr.net/npm/markdown-it-texmath/texmath.min.js
-    - https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js
+    - https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/texmath.min.js
+    - https://cdn.jsdelivr.net/npm/katex@0.19.0/dist/katex.min.js
     - https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.2.2/mermaid.min.js
     - https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js
     - https://edrys-labs.github.io/module/vendor/alpine.min.js
@@ -18,8 +17,8 @@ load:
 
   links:
     - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css
-    - https://cdn.jsdelivr.net/npm/markdown-it-texmath/css/texmath.min.css
-    - https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css
+    - https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/css/texmath.min.css
+    - https://cdn.jsdelivr.net/npm/katex@0.19.0/dist/katex.min.css
     - https://edrys-labs.github.io/module/vendor/water.min.css
     - https://edrys-labs.github.io/module/vendor/open-iconic/css/open-iconic.min.css
 
@@ -30,82 +29,77 @@ style: |-
     min-width: calc(100% - 2rem);
     visibility: hidden; /* Hide until content is processed */
   }
-  
+
   body.loaded {
     visibility: visible;
   }
 
-body: ""  
-
-main: |-
-  function init() {
-    if (window.md) return
-
-    if (!window.markdownItTextualUml) {
-      setTimeout(init, 100)
-      return
-    }
-
-    window.md = markdownit()
-
-    // enable everything
-    window.md.options.html = true
-    window.md.options.linkify = true
-    window.md.options.typographer = true
-
-    window.md.options.highlight = function (str, lang) {
-        if (lang && hljs.getLanguage(lang)) {
-            try {
-                return '<pre class="hljs"><code style="border-radius: 0px">' +
-                    hljs.highlight(str, {
-                        language: lang,
-                        ignoreIllegals: true
-                    }).value +
-                    '</code></pre>';
-            } catch (__) {}
-        }
-
-        return '<pre class="hljs"><code style="border-radius: 0px">' + md.utils.escapeHtml(str) +
-            '</code></pre>';
-    }
-
-    window.md.use(
-            texmath, {
-                engine: katex,
-                delimiters: 'dollars',
-                katexOptions: {
-                    macros: {
-                        "\\RR": "\\mathbb{R}"
-                    }
-                }
-            })
-        .use(window.markdownItTextualUml)
-
-    // diagrams are rendered explicitly in render(), once the content exists
-    mermaid.initialize({ startOnLoad: false })
+  .error {
+    color: #b8384a;
   }
 
-  function render(content) {
-      if (window.md) {
-          const renderedHTML = md.render(content)
-          document.body.innerHTML = renderedHTML
-          
-          document.body.classList.add('loaded')
+body: ""
 
+main: |-
+  // CommonJS package, converted to an ES module by jsDelivr
+  const UML_PLUGIN_URL = "https://cdn.jsdelivr.net/npm/markdown-it-textual-uml@0.12.0/+esm"
+
+  async function createRenderer() {
+      const { default: markdownItTextualUml } = await import(UML_PLUGIN_URL)
+
+      const md = markdownit({
+          html: true,
+          linkify: true,
+          typographer: true,
+          highlight(str, lang) {
+              const code = lang && hljs.getLanguage(lang)
+                  ? hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
+                  : md.utils.escapeHtml(str)
+              return '<pre class="hljs"><code style="border-radius: 0px">' + code + '</code></pre>'
+          }
+      })
+
+      md.use(
+              texmath, {
+                  engine: katex,
+                  delimiters: 'dollars',
+                  katexOptions: {
+                      macros: {
+                          "\\RR": "\\mathbb{R}"
+                      }
+                  }
+              })
+          .use(markdownItTextualUml)
+
+      // diagrams are rendered explicitly in render(), once the content exists
+      mermaid.initialize({ startOnLoad: false })
+
+      return md
+  }
+
+  function render(md, content) {
+      document.body.innerHTML = md.render(content)
+
+      try {
           mermaid.init(undefined, document.querySelectorAll('.mermaid'))
-      } else {
-        setTimeout(() => {
-          render(content)
-        }, 100)
+      } catch (e) {
+          // mermaid draws its own error box into the diagram; keep the rest of the content
+          console.error("Markdown-IT: mermaid failed", e)
       }
   }
 
-  window.onload = init
+  function showError(e) {
+      console.error("Markdown-IT:", e)
+      const message = document.createElement("p")
+      message.className = "error"
+      message.textContent =
+          "Markdown-IT could not render the content: " + (e && e.message ? e.message : e) +
+          ". If a library failed to load, check that cdn.jsdelivr.net and cdnjs.cloudflare.com are reachable."
+      document.body.replaceChildren(message)
+  }
 
-  Edrys.onReady(() => {
+  Edrys.onReady(async () => {
       console.log("Markdown-IT loaded")
-
-      init()
 
       const general = (Edrys.module.config || {}).content || ""
       const roleSpecific =
@@ -113,5 +107,11 @@ main: |-
 
       const content = [general, roleSpecific].filter(Boolean).join("\n\n")
 
-      render(content)
+      try {
+          render(await createRenderer(), content)
+      } catch (e) {
+          showError(e)
+      } finally {
+          document.body.classList.add("loaded")
+      }
   });
