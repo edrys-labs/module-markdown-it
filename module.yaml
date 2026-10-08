@@ -12,20 +12,17 @@ load:
     - https://cdn.jsdelivr.net/npm/katex@0.19.0/dist/katex.min.js
     - https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.2.2/mermaid.min.js
     - https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js
-    - https://edrys-labs.github.io/module/vendor/alpine.min.js
     - https://edrys-labs.github.io/module/edrys.js
 
   links:
     - https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/css/texmath.min.css
     - https://cdn.jsdelivr.net/npm/katex@0.19.0/dist/katex.min.css
     - https://edrys-labs.github.io/module/vendor/water.min.css
-    - https://edrys-labs.github.io/module/vendor/open-iconic/css/open-iconic.min.css
 
 style: |-
   body {
     margin: 0px;
     padding: 1rem;
-    min-width: calc(100% - 2rem);
     visibility: hidden; /* Hide until content is processed */
   }
 
@@ -115,7 +112,11 @@ main: |-
           .use(markdownItTextualUml)
 
       // diagrams are rendered explicitly in render(), once the content exists
-      mermaid.initialize({ startOnLoad: false })
+      mermaid.initialize({
+          startOnLoad: false,
+          // picked once at load; switching the colour scheme later needs a reload
+          theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default"
+      })
 
       return md
   }
@@ -142,8 +143,6 @@ main: |-
   }
 
   Edrys.onReady(async () => {
-      console.log("Markdown-IT loaded")
-
       const general = (Edrys.module.config || {}).content || ""
       const roleSpecific =
           (Edrys.module[Edrys.role.toLowerCase() + 'Config'] || {}).content || ""
