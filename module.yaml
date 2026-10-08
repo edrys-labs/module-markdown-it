@@ -80,6 +80,9 @@ main: |-
                 }
             })
         .use(window.markdownItTextualUml)
+
+    // diagrams are rendered explicitly in render(), once the content exists
+    mermaid.initialize({ startOnLoad: false })
   }
 
   function render(content) {
@@ -89,12 +92,7 @@ main: |-
           
           document.body.classList.add('loaded')
 
-          setTimeout(() => {
-              console.warn("loading mermaid")
-              mermaid.initialize({
-                  startOnLoad: true
-              })
-          }, 100)
+          mermaid.init(undefined, document.querySelectorAll('.mermaid'))
       } else {
         setTimeout(() => {
           render(content)
@@ -109,9 +107,11 @@ main: |-
 
       init()
 
-      let content = Edrys.module.config.content || ""
-      
-      content += "\n\n" + ( (Edrys.module[Edrys.role.toLowerCase()+'Config'] || {}).content || "" )
+      const general = (Edrys.module.config || {}).content || ""
+      const roleSpecific =
+          (Edrys.module[Edrys.role.toLowerCase() + 'Config'] || {}).content || ""
+
+      const content = [general, roleSpecific].filter(Boolean).join("\n\n")
 
       render(content)
   });
