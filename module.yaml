@@ -33,6 +33,24 @@ style: |-
     visibility: visible;
   }
 
+  /* keep wide content inside narrow tiles instead of scrolling the whole page */
+  img,
+  iframe,
+  video,
+  svg {
+    max-width: 100%;
+  }
+
+  img {
+    height: auto;
+  }
+
+  table,
+  .katex-display {
+    display: block;
+    overflow-x: auto;
+  }
+
   /* token colours from the highlight.js theme, background from water.css */
   .hljs {
     background: transparent;
