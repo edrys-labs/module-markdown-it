@@ -126,6 +126,9 @@
             },
           })
           .use(window.markdownItTextualUml)
+
+        // diagrams are rendered explicitly in render(), once the content exists
+        mermaid.initialize({ startOnLoad: false })
       }
 
       function render(content) {
@@ -135,12 +138,7 @@
           
           document.body.classList.add('loaded')
 
-          setTimeout(() => {
-            console.warn('loading mermaid')
-            mermaid.initialize({
-              startOnLoad: true,
-            })
-          }, 100)
+          mermaid.init(undefined, document.querySelectorAll('.mermaid'))
         } else {
           setTimeout(() => {
             render(content)
