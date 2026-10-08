@@ -23,11 +23,18 @@ style: |-
   body {
     margin: 0px;
     padding: 1rem;
-    visibility: hidden; /* Hide until content is processed */
   }
 
-  body.loaded {
-    visibility: visible;
+  /* replaced by the content or an error; appears only after 0.5s, so fast loads don't flicker */
+  .loading {
+    opacity: 0;
+    animation: show-loading 0s 0.5s forwards;
+  }
+
+  @keyframes show-loading {
+    to {
+      opacity: 0.6;
+    }
   }
 
   /* keep wide content inside narrow tiles instead of scrolling the whole page */
@@ -57,7 +64,7 @@ style: |-
     color: #b8384a;
   }
 
-body: ""
+body: '<p class="loading">Loading…</p>'
 
 main: |-
   // CommonJS package, converted to an ES module by jsDelivr
