@@ -90,6 +90,18 @@ main: |-
           }
       })
 
+      // markdown links open in a new tab, so the module keeps its content;
+      // in-page anchors and raw HTML links are left as the author wrote them
+      const linkOpen = md.renderer.rules.link_open ||
+          ((tokens, idx, options, env, self) => self.renderToken(tokens, idx, options))
+      md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+          if (!(tokens[idx].attrGet("href") || "").startsWith("#")) {
+              tokens[idx].attrSet("target", "_blank")
+              tokens[idx].attrSet("rel", "noopener")
+          }
+          return linkOpen(tokens, idx, options, env, self)
+      }
+
       md.use(
               texmath, {
                   engine: katex,
