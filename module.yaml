@@ -16,7 +16,6 @@ load:
     - https://edrys-labs.github.io/module/edrys.js
 
   links:
-    - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css
     - https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/css/texmath.min.css
     - https://cdn.jsdelivr.net/npm/katex@0.19.0/dist/katex.min.css
     - https://edrys-labs.github.io/module/vendor/water.min.css
@@ -34,6 +33,11 @@ style: |-
     visibility: visible;
   }
 
+  /* token colours from the highlight.js theme, background from water.css */
+  .hljs {
+    background: transparent;
+  }
+
   .error {
     color: #b8384a;
   }
@@ -43,6 +47,15 @@ body: ""
 main: |-
   // CommonJS package, converted to an ES module by jsDelivr
   const UML_PLUGIN_URL = "https://cdn.jsdelivr.net/npm/markdown-it-textual-uml@0.12.0/+esm"
+
+  // load.links has no media attribute, so the light/dark highlight.js themes are added here
+  for (const [scheme, theme] of [["light", "github"], ["dark", "github-dark"]]) {
+      const link = document.createElement("link")
+      link.rel = "stylesheet"
+      link.media = "(prefers-color-scheme: " + scheme + ")"
+      link.href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/" + theme + ".min.css"
+      document.head.appendChild(link)
+  }
 
   async function createRenderer() {
       const { default: markdownItTextualUml } = await import(UML_PLUGIN_URL)
@@ -55,7 +68,7 @@ main: |-
               const code = lang && hljs.getLanguage(lang)
                   ? hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
                   : md.utils.escapeHtml(str)
-              return '<pre class="hljs"><code style="border-radius: 0px">' + code + '</code></pre>'
+              return '<pre class="hljs"><code>' + code + '</code></pre>'
           }
       })
 

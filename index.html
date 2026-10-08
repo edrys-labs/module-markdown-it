@@ -44,7 +44,13 @@
 
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css"
+      media="(prefers-color-scheme: light)"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css"
+    />
+    <link
+      rel="stylesheet"
+      media="(prefers-color-scheme: dark)"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 
@@ -94,7 +100,7 @@
               lang && hljs.getLanguage(lang)
                 ? hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
                 : md.utils.escapeHtml(str)
-            return '<pre class="hljs"><code style="border-radius: 0px">' + code + '</code></pre>'
+            return '<pre class="hljs"><code>' + code + '</code></pre>'
           },
         })
 
@@ -166,6 +172,11 @@
       
       body.loaded {
         visibility: visible;
+      }
+
+      /* token colours from the highlight.js theme, background from water.css */
+      .hljs {
+        background: transparent;
       }
 
       .error {
