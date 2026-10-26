@@ -64,7 +64,7 @@ style: |-
     color: #b8384a;
   }
 
-body: '<p class="loading">Loading…</p>'
+body: '<p class="loading">Loading&hellip;</p>'
 
 main: |-
   // CommonJS package, converted to an ES module by jsDelivr
