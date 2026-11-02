@@ -3,7 +3,8 @@
 Show task descriptions and other Markdown content in an Edrys class. The module renders Markdown with
 [markdown-it](https://github.com/markdown-it/markdown-it) and adds formulas, code highlighting, diagrams and
 embedded HTML (e.g. videos). It is shown in every room (`show-in: *`) and has no shared state: every peer renders
-the content from the module configuration.
+the content from the module configuration. The module follows the classroom's light or dark theme, code
+highlighting and Mermaid diagrams included.
 
 ![A task description with a formula, highlighted code, a Mermaid diagram and a table](screenshot.png)
 
@@ -72,7 +73,7 @@ Don't use a folded block (`>-`): it joins lines, which breaks code blocks and di
   ````
 
   HTML links are left as written; add `target="_blank"` yourself if they should open in a new tab.
-* __Code highlighting__ with [highlight.js](https://highlightjs.org/), in light and dark mode:
+* __Code highlighting__ with [highlight.js](https://highlightjs.org/):
 
   ```` markdown
   ```python

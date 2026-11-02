@@ -18,11 +18,12 @@ load:
     - https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/css/texmath.min.css
     - https://cdn.jsdelivr.net/npm/katex@0.19.0/dist/katex.min.css
     - https://edrys-labs.github.io/module/vendor/water.min.css
+    - https://edrys-labs.github.io/module/edrys-module.css
 
 style: |-
   body {
     margin: 0px;
-    padding: 1rem;
+    padding: 16px 18px;
   }
 
   /* replaced by the content or an error; appears only after 0.5s, so fast loads don't flicker */
@@ -55,13 +56,13 @@ style: |-
     overflow-x: auto;
   }
 
-  /* token colours from the highlight.js theme, background from water.css */
+  /* token colours from the highlight.js theme, background from edrys-module.css */
   .hljs {
     background: transparent;
   }
 
   .error {
-    color: #b8384a;
+    color: var(--edrys-on-error-pill, #b8384a);
   }
 
 body: '<p class="loading">Loading&hellip;</p>'
@@ -70,13 +71,54 @@ main: |-
   // CommonJS package, converted to an ES module by jsDelivr
   const UML_PLUGIN_URL = "https://cdn.jsdelivr.net/npm/markdown-it-textual-uml@0.12.0/+esm"
 
-  // load.links has no media attribute, so the light/dark highlight.js themes are added here
+  // load.links can't mark them, so the light/dark highlight.js themes are added
+  // here, before the module's style; one of them is switched off by applyCodeTheme()
   for (const [scheme, theme] of [["light", "github"], ["dark", "github-dark"]]) {
       const link = document.createElement("link")
       link.rel = "stylesheet"
-      link.media = "(prefers-color-scheme: " + scheme + ")"
+      link.dataset.codeTheme = scheme
       link.href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/" + theme + ".min.css"
-      document.head.appendChild(link)
+      document.head.insertBefore(link, document.head.querySelector("style"))
+  }
+
+  // The classroom's theme (edrys.js puts it on <html>), the OS preference when opened on its own
+  const darkMode = matchMedia("(prefers-color-scheme: dark)")
+  function isDark() {
+      const theme = document.documentElement.dataset.theme
+      return theme ? theme === "dark" : darkMode.matches
+  }
+
+  // highlight.js's token colours for the theme; media instead of disabled, as a
+  // link disabled before it loaded stays empty when enabled again
+  function applyCodeTheme() {
+      for (const link of document.querySelectorAll("link[data-code-theme]")) {
+          link.media = (link.dataset.codeTheme === "dark") === isDark() ? "all" : "not all"
+      }
+  }
+
+  // Mermaid in the module's colours (edrys-module.css), its own dark or
+  // light theme where those are missing
+  function mermaidConfig() {
+      const css = getComputedStyle(document.documentElement)
+      const color = (name) => css.getPropertyValue(name).trim()
+      if (!color("--edrys-bg")) {
+          return { startOnLoad: false, theme: isDark() ? "dark" : "default" }
+      }
+      return {
+          startOnLoad: false,
+          theme: "base",
+          themeVariables: {
+              darkMode: isDark(),
+              background: color("--edrys-bg"),
+              primaryColor: color("--edrys-code-bg"),
+              primaryTextColor: color("--edrys-heading"),
+              primaryBorderColor: color("--edrys-field-line"),
+              lineColor: color("--edrys-muted"),
+              textColor: color("--edrys-text"),
+              edgeLabelBackground: color("--edrys-bg"),
+              fontFamily: color("--edrys-font")
+          }
+      }
   }
 
   async function createRenderer() {
@@ -118,17 +160,16 @@ main: |-
               })
           .use(markdownItTextualUml)
 
-      // diagrams are rendered explicitly in render(), once the content exists
-      mermaid.initialize({
-          startOnLoad: false,
-          // picked once at load; switching the colour scheme later needs a reload
-          theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default"
-      })
-
       return md
   }
 
+  // the renderer and content on screen, drawn again when the theme changes
+  let shown = null
+
   function render(md, content) {
+      shown = { md, content }
+      // diagrams are rendered explicitly below, once the content exists
+      mermaid.initialize(mermaidConfig())
       document.body.innerHTML = md.render(content)
 
       try {
@@ -148,6 +189,19 @@ main: |-
           ". If a library failed to load, check that cdn.jsdelivr.net and cdnjs.cloudflare.com are reachable."
       document.body.replaceChildren(message)
   }
+
+  function applyTheme() {
+      applyCodeTheme()
+      if (!shown) return
+      const scroll = window.scrollY
+      render(shown.md, shown.content)
+      window.scrollTo(0, scroll)
+  }
+
+  applyCodeTheme()
+  darkMode.addEventListener("change", applyTheme)
+  // onTheme is missing in edrys.js before the themes came
+  Edrys.onTheme?.(applyTheme)
 
   Edrys.onReady(async () => {
       const general = (Edrys.module.config || {}).content || ""
