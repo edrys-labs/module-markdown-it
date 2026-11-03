@@ -170,11 +170,28 @@
       // the renderer and content on screen, drawn again when the theme changes
       let shown = null
 
+      // each block reads in the direction of its own text: Arabic or Hebrew right to left,
+      // English left to right, also both in one document; code always left to right
+      function setDirections() {
+        // a paragraph inside a list item goes with its item
+        document.body
+          .querySelectorAll('p:not(li p), h1, h2, h3, h4, h5, h6, li, blockquote, table, dt, dd')
+          .forEach((el) => el.setAttribute('dir', 'auto'))
+        // a list puts its numbers or bullets on the side of its first item; "auto" would not
+        // work here, it skips the text of children that have their own direction
+        document.body.querySelectorAll('ul, ol').forEach((list) => {
+          const first = list.querySelector(':scope > li')
+          if (first) list.setAttribute('dir', getComputedStyle(first).direction)
+        })
+        document.body.querySelectorAll('pre').forEach((el) => el.setAttribute('dir', 'ltr'))
+      }
+
       function render(md, content) {
         shown = { md, content }
         // diagrams are rendered explicitly below, once the content exists
         mermaid.initialize(mermaidConfig())
         document.body.innerHTML = md.render(content)
+        setDirections()
 
         try {
           mermaid.init(undefined, document.querySelectorAll('.mermaid'))
